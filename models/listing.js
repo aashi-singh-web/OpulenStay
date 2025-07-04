@@ -9,7 +9,8 @@ const listingSchema = new Schema({
     description: String,
     image: {
         type: String,
-        required: true,
+        default: "https://unsplash.com/photos/a-large-swimming-pool-surrounded-by-palm-trees-_pPHgeHz1uk",
+       set: (v)=> v===""?"https://unsplash.com/photos/a-large-swimming-pool-surrounded-by-palm-trees-_pPHgeHz1uk":v, // default value if empty
     },
     price: Number,
     location: String,
@@ -17,4 +18,4 @@ const listingSchema = new Schema({
 });
 
 const Listing = mongoose.model("Listing", listingSchema);
-modules.export = Listing;
+module.exports = Listing;
