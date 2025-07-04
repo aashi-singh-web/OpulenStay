@@ -7,6 +7,8 @@ const Listing = require('./models/listing'); // Importing the Listing model
 const path= require('path');
 const methodOverride= require("method-override");
 
+const ejsMate = require("ejs-mate");
+
 // setting up the database
 const mongo_url = 'mongodb://127.0.0.1:27017/OpulenStay';
 main()
@@ -24,6 +26,9 @@ main()
  app.set('views', path.join(__dirname, 'views')); 
 app.use(express.urlencoded({ extended: true })); 
 app.use(methodOverride("_method"));
+app.engine('ejs',ejsMate);
+
+app.use(express.static(path.join(__dirname,"/public")));
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
