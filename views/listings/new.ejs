@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpulenStay</title>
+</head>
+<body>
+<style>
+  .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    width: 120px; 
+    font-weight: bold;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    flex: 0.5;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+</style>
+
+<h3>Create a New Listing</h3>
+<form method="POST" action="/listings">
+
+  <div class="form-group">
+    <label for="title">Title:</label>
+    <input type="text" name="listing[title]" placeholder="Enter Title" required>
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description:</label>
+    <textarea name="listing[description]" placeholder="Enter Description"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="image">Image:</label>
+    <input type="text" name="listing[image]" placeholder="Enter Image URL/Link">
+  </div>
+
+  <div class="form-group">
+    <label for="price">Price:</label>
+    <input type="number" name="listing[price]" placeholder="Enter Price" required>
+  </div>
+
+  <div class="form-group">
+    <label for="country">Country:</label>
+    <input type="text" name="listing[country]" placeholder="Enter Country" required>
+  </div>
+
+  <div class="form-group">
+    <label for="location">Location:</label>
+    <input type="text" name="listing[location]" placeholder="Enter Location" required>
+  </div>
+
+  <button type="submit">Create Listing</button>
+</form>
+</body>
+</html>
