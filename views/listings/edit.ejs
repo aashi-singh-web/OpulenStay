@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpulenStay</title>
+  </head>
+  <body>
+   <style>
+  .form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    width: 120px;
+    font-weight: bold;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    flex: 0.5;
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+</style>
+
+<h3>Edit your Listing</h3>
+<form method="POST" action="/listings/<%= listing._id %>?_method=PUT">
+
+  <div class="form-group">
+    <label for="title">Title:</label>
+    <input name="listing[title]" value="<%= listing.title %>" type="text" required />
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description:</label>
+    <textarea name="listing[description]" required><%= listing.description %></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="image">Image:</label>
+    <input name="listing[image]" value="<%= listing.image %>" type="text" required />
+  </div>
+
+  <div class="form-group">
+    <label for="price">Price:</label>
+    <input name="listing[price]" value="<%= listing.price %>" type="number" required />
+  </div>
+
+  <div class="form-group">
+    <label for="country">Country:</label>
+    <input name="listing[country]" value="<%= listing.country %>" type="text" required />
+  </div>
+
+  <div class="form-group">
+    <label for="location">Location:</label>
+    <input name="listing[location]" value="<%= listing.location %>" type="text" required />
+  </div>
+
+  <button type="submit">Edit</button>
+</form>
+
+  </body>
+</html>
