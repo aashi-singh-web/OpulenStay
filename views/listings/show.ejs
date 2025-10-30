@@ -16,7 +16,11 @@
       <li><%= listing.title %></li>
       <li><%= listing.description %></li>
       <!-- for currency formatting -->
-      <li>&#8377; <%= listing.price.toLocaleString("en-IN") %></li> 
+      <% if (listing.price != null) { %>
+        <li>&#8377; <%= listing.price.toLocaleString("en-IN") %></li>
+      <% } else { %>
+        <li><em>Price not available</em></li>
+      <% } %>
       
       <li><%= listing.location %></li>
       <li><%= listing.country %></li>
