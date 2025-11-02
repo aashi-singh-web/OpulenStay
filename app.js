@@ -1,3 +1,8 @@
+if(process.env.NODE_ENV !== "production"){
+    require("dotenv").config();
+ }
+
+console.lof(process.env.SECRET);
 const express= require('express');
 const app = express();
 
@@ -88,6 +93,8 @@ app.use((req,res,next) => {
 app.get("/listings", wrapAsync(async (req, res) => {
   const allListings = await Listing.find({});
   res.render("listings/index.ejs", { allListings });
+
+
 }));
 
 //New Route
