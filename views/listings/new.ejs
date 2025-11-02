@@ -47,6 +47,22 @@
     <input type="text" name="listing[location]" placeholder="eg. Jaipur, Rajasthan" class="form-control"required>
     <div class="invalid-feedback">Please enter the location</div>
   </div>
+
+  <div class="mb-3">
+    <label for="category" class="form-label">Category:</label>
+    <select name="listing[category]" class="form-control">
+      <option value="">Select a category (optional)</option>
+      <option value="trending">Trending</option>
+      <option value="rooms">Rooms</option>
+      <option value="signaturedestinations">Signature Destinations</option>
+      <option value="mountains">Mountains</option>
+      <option value="castles">Castles</option>
+      <option value="pools">Amazing Pools</option>
+      <option value="camping">Camping</option>
+      <option value="farms">Farms</option>
+      <option value="arctic">Arctic</option>
+    </select>
+  </div>
 <br>
   <button class="btn btn-dark add-btn" type="submit">Add</button>
 <br><br>

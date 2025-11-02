@@ -12,6 +12,7 @@
   margin-right: 2rem;
   margin-top: 2rem;
   opacity: 0.7;
+  transition: opacity 0.2s;
  }
 
  .filter:hover{
@@ -19,8 +20,14 @@
   cursor: pointer;
  }
 
+ .filter.active{
+  opacity: 1;
+  border-bottom: 2px solid #fe424d;
+ }
+
  .filter p{
   font-size: 0.8rem;
+  margin: 0;
  }
 
  .tax-info{
@@ -38,44 +45,44 @@
  }
 </style>
 <div id="filters">
-  <div class="filter">
+  <a href="/listings<%= searchQuery ? '?search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= !selectedCategory ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-fire"></i></div>
     <p>Trending</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=rooms<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'rooms' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-bed"></i></div>
     <p>Rooms</p>
-    </div>
+  </a>
  
-  <div class="filter">
+  <a href="/listings?category=signaturedestinations<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'signaturedestinations' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-mountain-city"></i></div>
     <p>Signature Destinations</p>
-    </div>
+  </a>
   
-  <div class="filter">
+  <a href="/listings?category=mountains<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'mountains' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-mountain"></i></div>
     <p>Mountains</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=castles<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'castles' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-fort-awesome"></i></div>
     <p>Castles</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=pools<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'pools' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-person-swimming"></i></div>
     <p>Amazing Pools</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=camping<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'camping' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-campground"></i></div>
     <p>Camping</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=farms<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'farms' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-solid fa-cow"></i></div>
     <p>Farms</p>
-    </div>
-  <div class="filter">
+  </a>
+  <a href="/listings?category=arctic<%= searchQuery ? '&search=' + encodeURIComponent(searchQuery) : '' %>" class="filter <%= selectedCategory === 'arctic' ? 'active' : '' %>" style="text-decoration: none; color: inherit;">
     <div><i class="fa-regular fa-snowflake"></i></div>
     <p>Arctic</p>
-  </div>
+  </a>
   <div class="tax-toggle">
     <div class="form-check-reverse form-switch">
   <input class="form-check-input" type="checkbox" role="switch" id="switchCheckDefault">
@@ -84,6 +91,12 @@
   </div>
  </div>
 
+<% if (allListings.length === 0) { %>
+  <div class="alert alert-info mt-3" role="alert">
+    <h4>No listings found</h4>
+    <p>Try adjusting your search or filter criteria.</p>
+  </div>
+<% } %>
 <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
   <% for (let listing of allListings) { %>
     <a href="/listings/<%= listing._id%>" class="listing-link">
@@ -100,8 +113,11 @@
           <b><%= listing.title %></b>
           <br/>
           <% if (listing.price != null) { %>
-            &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
-            <i class="tax-info">&nbsp; &nbsp; +18% GST</i>
+            <span class="base-price">&#8377; <%= listing.price.toLocaleString("en-IN") %> / night</span>
+            <span class="final-price tax-info" style="display: none;">
+              &#8377; <%= Math.round(listing.price * 1.18).toLocaleString("en-IN") %> / night
+              <small style="color: #666; font-size: 0.85em;"> (incl. 18% GST)</small>
+            </span>
           <% } else { %>
             <em>Price not available</em>
           <% } %>
@@ -115,15 +131,26 @@
 <script>
   let taxSwitch = document.getElementById('switchCheckDefault');
   taxSwitch.addEventListener('click', ()=> {
-let taxInfo= document.getElementsByClassName('tax-info');
-for(info of taxInfo){
-  if(info.style.display!= "inline"){
-    info.style.display= "inline";
-  } else{
-    info.style.display= "none";
-  }
-}
-  });
+    let basePrices = document.getElementsByClassName('base-price');
+    let finalPrices = document.getElementsByClassName('final-price');
     
+    if(taxSwitch.checked) {
+      // Show final price with tax, hide base price
+      for(let i = 0; i < basePrices.length; i++) {
+        basePrices[i].style.display = 'none';
+      }
+      for(let i = 0; i < finalPrices.length; i++) {
+        finalPrices[i].style.display = 'inline';
+      }
+    } else {
+      // Show base price, hide final price
+      for(let i = 0; i < basePrices.length; i++) {
+        basePrices[i].style.display = 'inline';
+      }
+      for(let i = 0; i < finalPrices.length; i++) {
+        finalPrices[i].style.display = 'none';
+      }
+    }
+  });
 </script>
 

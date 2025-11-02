@@ -75,6 +75,8 @@ app.use((req,res,next) => {
   res.locals.success= req.flash("success");
   res.locals.error= req.flash("error");
   res.locals.currUser= req.user;
+  res.locals.searchQuery = req.query.search || '';
+  res.locals.selectedCategory = req.query.category || '';
   next();
 });
 
@@ -91,10 +93,25 @@ app.use((req,res,next) => {
 
 //Index Route
 app.get("/listings", wrapAsync(async (req, res) => {
-  const allListings = await Listing.find({});
-  res.render("listings/index.ejs", { allListings });
-
-
+  let query = {};
+  
+  // Handle search query
+  if (req.query.search) {
+    query.$or = [
+      { title: { $regex: req.query.search, $options: 'i' } },
+      { location: { $regex: req.query.search, $options: 'i' } },
+      { country: { $regex: req.query.search, $options: 'i' } },
+      { description: { $regex: req.query.search, $options: 'i' } }
+    ];
+  }
+  
+  // Handle category filter
+  if (req.query.category) {
+    query.category = req.query.category;
+  }
+  
+  const allListings = await Listing.find(query);
+  res.render("listings/index.ejs", { allListings, searchQuery: req.query.search || '', selectedCategory: req.query.category || '' });
 }));
 
 //New Route
