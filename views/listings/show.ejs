@@ -10,30 +10,37 @@
          <img src="<%=listing.image %>" class="card-img-top show-img" alt="listing_image">
   <div class="card-body">
     
-    <p class="card-text">
-      </div>
+    <p class="card-text"> Owned by
+      <i><%= listing.owner ? listing.owner.username : 'Unknown' %></i></p>
+      
     <ul>
       
-      <li><%= listing.description %></li>
+      <br>
+     <p class="card-text"> <li><%= listing.description %></li></p>
       <!-- for currency formatting -->
-      <% if (listing.price != null) { %>
+      <p class="card-text"><% if (listing.price != null) { %>
         <li>&#8377; <%= listing.price.toLocaleString("en-IN") %></li>
       <% } else { %>
         <li><em>Price not available</em></li>
-      <% } %>
+      <% } %></p>
       
-      <li><%= listing.location %></li>
-      <li><%= listing.country %></li>
+      <p class="card-text"></p><li><%= listing.location %></li></p>
+      <p class="card-text"></p><li><%= listing.country %></li></p>
     </ul>
+    </div>
   </p>
     <br />
-    <div class="btns"> <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn">Edit</a>
-      
-    
-    <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
-      <button class="btn btn-dark">Delete</button>
-    </form>
-</div>
+    <% if (typeof currUser !== 'undefined' && listing.owner && String(currUser._id) === String(listing.owner._id)) { %>
+      <div class="btns">
+        <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn">Edit</a>
+        <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE" style="display:inline-block; margin-left:8px;">
+          <button class="btn btn-dark">Delete</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+
+  <% if(currUser) { %>
 
 <div class="col-8 offset-3 mb-3">
   <hr>
@@ -65,6 +72,7 @@
     </div>
     <button class="btn btn-outline-dark" type="submit">Submit</button>
   </form>
+  <% } %>
 <hr>
 <p><b>All Reviews</b></p>
 <div class="row gx-3 gy-3 review-section">
@@ -73,7 +81,7 @@
       <div class="col-md-6">
         <div class="card review-card">
           <div class="card-body">
-            <h5 class="card-title"><%= listing.reviews[i].author || "Jane Doe" %></h5>
+            <h5 class="card-title">@<%= listing.reviews[i].author.username %></h5>
             <p class="card-text"><%= listing.reviews[i].comment %></p>
             <p class="card-text">Rating: <%= listing.reviews[i].rating %></p>
             <form class="mb-3" method="POST" action="/listings/<%= listing._id %>/reviews/<%= listing.reviews[i]._id %>?_method=DELETE">
