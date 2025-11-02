@@ -14,6 +14,7 @@ const methodOverride= require("method-override");
 
 const ejsMate = require("ejs-mate");
 const wrapAsync = require('./utils/wrapAsync.js');
+const ExpressError = require('./utils/ExpressError.js');
 
 
 const session = require('express-session');
@@ -50,6 +51,18 @@ app.engine('ejs',ejsMate);
 
 app.use(express.static(path.join(__dirname,"/public")));
 
+const store= MongoStore.create({
+  mongoUrl: dbUrl,
+  crypto: {
+    secret: process.env.SECRET,
+  },
+  touchAfter: 24 * 3600,
+});
+
+store.on("error", function(e){
+  console.log("SESSION STORE ERROR", e);
+});
+
 const sessionOptions = {
   store: store,
   secret: process.env.SECRET,
@@ -65,18 +78,6 @@ const sessionOptions = {
 // app.get('/', (req, res) => {
 //     res.send('Hello World!');
 // });
-
-const store= MongoStore.create({
-  mongoUrl: dbUrl,
-  crypto: {
-    secret: process.env.SECRET,
-  },
-  touchAfter: 24 * 3600,
-});
-
-store.on("error", function(e){
-  console.log("SESSION STORE ERROR", e);
-});
 
 app.use(session(sessionOptions));
 app.use(flash());
@@ -291,6 +292,7 @@ app.use((err,req,res,next) => {
   // res.status(statusCode).send(message);
 });
 
-app.listen(8080, () => {
-    console.log('Server is running on port 8080');
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 } );
