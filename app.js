@@ -19,7 +19,7 @@ const User = require('./models/user.js');
 
 const { listingSchema, reviewSchema } = require('./schema.js');
 const Review = require('./models/review.js');
-const { isLoggedIn } = require('./middleware.js');
+const { isLoggedIn, saveRedirectUrl } = require('./middleware.js');
 
 // setting up the database
 const mongo_url = 'mongodb://127.0.0.1:27017/OpulenStay';
@@ -70,6 +70,7 @@ passport.deserializeUser(User.deserializeUser());
 app.use((req,res,next) => {
   res.locals.success= req.flash("success");
   res.locals.error= req.flash("error");
+  res.locals.currUser= req.user;
   next();
 });
 
@@ -203,8 +204,16 @@ app.post("/signup", wrapAsync(async(req,res)=>{
   let {username, email, password} = req.body;
   const newUser = new User({username, email});
   const registeredUser= await User.register(newUser, password);
+  
+  req.login(registeredUser, err=>{
+    if(err) {
+      return next(err);
+    }
+    
   req.flash("success", "Welcome to OpulenStays!");
+  
   res.redirect("/listings");
+  })
   }catch(e) {
     req.flash("error", e.message);
     res.redirect("signup");
@@ -218,14 +227,15 @@ app.get("/login",(req,res)=>{
   res.render("./users/login.ejs");
 });
 
-app.post("/login", passport.authenticate("local", {
+app.post("/login",saveRedirectUrl, passport.authenticate("local", {
   failureFlash: true,
   failureRedirect: "/login"})
 , async(req, res) => {
   req.flash("success", "Welcome back to OpulenStays!");
-  // const redirectUrl = req.session.returnTo || '/listings';
+  let redirectUrl = res.locals.redirectUrl || '/listings';
+  res.redirect(redirectUrl);
   // delete req.session.returnTo;
-  res.redirect("/listings");
+
 });
 
 app.get("/logout", (req, res,next) => {
