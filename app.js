@@ -10,6 +10,10 @@ const methodOverride= require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require('./utils/wrapAsync.js');
 const ExpressError = require('./utils/ExpressError.js');
+
+const session = require('express-session');
+const flash = require('connect-flash');
+
 const { listingSchema, reviewSchema } = require('./schema.js');
 const Review = require('./models/review.js');
 
@@ -34,8 +38,27 @@ app.engine('ejs',ejsMate);
 
 app.use(express.static(path.join(__dirname,"/public")));
 
+const sessionOptions = {
+  secret: "mysupersecretcode",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    expires: Date.now()+7*24*60*60*1000,
+    maxAge: 7*24*60*60*1000,
+    httpOnly: true,
+  }
+};
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
+});
+
+app.use(session(sessionOptions));
+app.use(flash());
+app.use((req,res,next) => {
+  res.locals.success= req.flash("success");
+  res.locals.error= req.flash("error");
+  next();
 });
 
 const validateListing = (req, res, next) => {
@@ -79,6 +102,10 @@ app.get("/listings/new", (req, res) => {
 app.get("/listings/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
   const listing = await Listing.findById(id).populate('reviews');
+  if(!listing){
+    req.flash("error", "Listing does not exist!");
+    return res.redirect("/listings");
+  }
   res.render("listings/show.ejs", { listing });
 }));
 
@@ -86,6 +113,7 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {
   const newListing = new Listing(req.body.listing);
   await newListing.save();
+  req.flash("success", "New listing created successfully!");
   res.redirect("/listings");
 })
 );
@@ -94,6 +122,10 @@ app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {
 app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
   let { id } = req.params;
   const listing = await Listing.findById(id);
+  if(!listing){
+    req.flash("error", "Listing does not exist!");
+    return res.redirect("/listings");
+  }
   res.render("listings/edit.ejs", { listing });
 }));
 
@@ -101,6 +133,7 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 app.put("/listings/:id",validateListing, wrapAsync(async (req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+  req.flash("success", "Listing updated successfully!");
   res.redirect(`/listings/${id}`);
 }));
 
@@ -109,6 +142,7 @@ app.delete("/listings/:id", wrapAsync(async (req, res) => {
   let { id } = req.params;
   let deletedListing = await Listing.findByIdAndDelete(id);
   console.log(deletedListing);
+  req.flash("success", "Listing deleted successfully!");
   res.redirect("/listings");
 })
 );
@@ -121,6 +155,7 @@ app.post("/listings/:id/reviews",validateReview, wrapAsync(async (req, res)=> {
   listing.reviews.push(newReview);
   await newReview.save();
   await listing.save();
+  req.flash("success", "Review added successfully!");
 res.redirect(`/listings/${listing._id}`);
 
 }));
@@ -130,6 +165,7 @@ app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
   let { id, reviewId } = req.params;
   await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
   await Review.findByIdAndDelete(reviewId);
+  req.flash("success", "Review deleted successfully!");
   res.redirect(`/listings/${id}`);
 }));
 
