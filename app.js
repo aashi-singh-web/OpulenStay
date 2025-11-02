@@ -13,9 +13,13 @@ const ExpressError = require('./utils/ExpressError.js');
 
 const session = require('express-session');
 const flash = require('connect-flash');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user.js');
 
 const { listingSchema, reviewSchema } = require('./schema.js');
 const Review = require('./models/review.js');
+const { isLoggedIn } = require('./middleware.js');
 
 // setting up the database
 const mongo_url = 'mongodb://127.0.0.1:27017/OpulenStay';
@@ -55,11 +59,30 @@ app.get('/', (req, res) => {
 
 app.use(session(sessionOptions));
 app.use(flash());
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+// configuring
+
 app.use((req,res,next) => {
   res.locals.success= req.flash("success");
   res.locals.error= req.flash("error");
   next();
 });
+
+
+// app.get("/demouser", async(req, res) => {
+//   let fakeUser = new User({
+//     email: "student@gmail.com",
+//     username: "student"
+// });
+//   let registeredUser= await User.register(fakeUser, "helloworld");
+//   res.send(registeredUser);
+// });
+
 
 const validateListing = (req, res, next) => {
    let {error}= listingSchema.validate(req.body);
@@ -94,7 +117,8 @@ app.get("/listings", wrapAsync(async (req, res) => {
 }));
 
 //New Route
-app.get("/listings/new", (req, res) => {
+app.get("/listings/new", isLoggedIn,(req, res) => {
+
   res.render("listings/new.ejs");
 });
 
@@ -110,7 +134,7 @@ app.get("/listings/:id", wrapAsync(async (req, res) => {
 }));
 
 //Create Route
-app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {
+app.post("/listings", isLoggedIn,validateListing, wrapAsync(async (req, res, next) => {
   const newListing = new Listing(req.body.listing);
   await newListing.save();
   req.flash("success", "New listing created successfully!");
@@ -119,7 +143,7 @@ app.post("/listings", validateListing, wrapAsync(async (req, res, next) => {
 );
 
 //Edit Route
-app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
+app.get("/listings/:id/edit", isLoggedIn, wrapAsync(async (req, res) => {
   let { id } = req.params;
   const listing = await Listing.findById(id);
   if(!listing){
@@ -130,7 +154,7 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 }));
 
 //Update Route
-app.put("/listings/:id",validateListing, wrapAsync(async (req, res) => {
+app.put("/listings/:id",isLoggedIn, validateListing, wrapAsync(async (req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndUpdate(id, { ...req.body.listing });
   req.flash("success", "Listing updated successfully!");
@@ -138,7 +162,7 @@ app.put("/listings/:id",validateListing, wrapAsync(async (req, res) => {
 }));
 
 //Delete Route
-app.delete("/listings/:id", wrapAsync(async (req, res) => {
+app.delete("/listings/:id",isLoggedIn, wrapAsync(async (req, res) => {
   let { id } = req.params;
   let deletedListing = await Listing.findByIdAndDelete(id);
   console.log(deletedListing);
@@ -168,6 +192,51 @@ app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
   req.flash("success", "Review deleted successfully!");
   res.redirect(`/listings/${id}`);
 }));
+
+//user test route
+app.get("/signup",(req,res)=>{
+  res.render("./users/signup.ejs");
+});
+
+app.post("/signup", wrapAsync(async(req,res)=>{
+  try{
+  let {username, email, password} = req.body;
+  const newUser = new User({username, email});
+  const registeredUser= await User.register(newUser, password);
+  req.flash("success", "Welcome to OpulenStays!");
+  res.redirect("/listings");
+  }catch(e) {
+    req.flash("error", e.message);
+    res.redirect("signup");
+
+  }
+
+
+}));
+
+app.get("/login",(req,res)=>{
+  res.render("./users/login.ejs");
+});
+
+app.post("/login", passport.authenticate("local", {
+  failureFlash: true,
+  failureRedirect: "/login"})
+, async(req, res) => {
+  req.flash("success", "Welcome back to OpulenStays!");
+  // const redirectUrl = req.session.returnTo || '/listings';
+  // delete req.session.returnTo;
+  res.redirect("/listings");
+});
+
+app.get("/logout", (req, res,next) => {
+  req.logout((err) => {
+    if (err) {
+     return next(err);
+    }
+    req.flash("success", "Logged out successfully!");
+    res.redirect("/listings");
+  });
+});
 
 
 // app.get("/test", async (req, res) => {
