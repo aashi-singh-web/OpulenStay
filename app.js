@@ -17,6 +17,7 @@ const wrapAsync = require('./utils/wrapAsync.js');
 
 
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
@@ -26,7 +27,10 @@ const Review = require('./models/review.js');
 const { isLoggedIn, saveRedirectUrl, isOwner, validateListing,validateReview, isReviewAuthor } = require('./middleware.js');
 
 // setting up the database
-const mongo_url = 'mongodb://127.0.0.1:27017/OpulenStay';
+// const mongo_url = 'mongodb://127.0.0.1:27017/OpulenStay';
+
+const dbUrl= process.env.ATLASDB_URL;
+
 main()
  .then(() => {
     console.log('Connected to DB');
@@ -35,7 +39,7 @@ main()
  });    
 
  async function main(){
-   await mongoose.connect(mongo_url);
+   await mongoose.connect(dbUrl);
  };
 
  app.set('view engine', 'ejs'); 
@@ -47,6 +51,7 @@ app.engine('ejs',ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
 const sessionOptions = {
+  store,
   secret: "mysupersecretcode",
   resave: false,
   saveUninitialized: true,
@@ -60,6 +65,18 @@ const sessionOptions = {
 // app.get('/', (req, res) => {
 //     res.send('Hello World!');
 // });
+
+const store= MongoStore.create({
+  mongoUrl: dbUrl,
+  crypto: {
+    secret: "mysupersecretcode",
+  },
+  touchAfter: 24 * 3600,
+});
+
+store.on("error", function(e){
+  console.log("SESSION STORE ERROR", e);
+});
 
 app.use(session(sessionOptions));
 app.use(flash());
