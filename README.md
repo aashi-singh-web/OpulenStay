@@ -14,6 +14,7 @@ https://opulenstays.onrender.com/listings
 * **Database:** MongoDB Atlas (Mongoose)
 * **Authentication:** Passport.js
 * **API Style:** RESTful APIs
-* **Tools:** Git, Render, Postman
+* **Tools:** Git, Render
+
 
 
